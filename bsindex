@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    --bg: #ffffff;
+    --text: #222222;
+    --hint: #8e8e93;
+    --button: #2481cc;
+    --button-text: #ffffff;
+    --secondary-bg: #f0f0f3;
+    --border: #e2e2e6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 16px 16px 90px 16px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 15px;
+  }
+  h1 { font-size: 18px; margin: 4px 0 16px; }
+  .hint { color: var(--hint); font-size: 13px; margin-bottom: 16px; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; }
+  .tab {
+    flex: 1 1 auto; text-align: center; padding: 10px 8px; border-radius: 10px;
+    background: var(--secondary-bg); font-weight: 600; font-size: 13px; cursor: pointer;
+    border: 2px solid transparent;
+  }
+  .tab.active { background: var(--button); color: var(--button-text); }
+  .field { margin-bottom: 14px; }
+  label { display: block; font-size: 13px; color: var(--hint); margin-bottom: 6px; }
+  select, input[type=text] {
+    width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);
+    font-size: 15px; background: var(--bg); color: var(--text);
+  }
+  .row { display: flex; gap: 8px; align-items: flex-end; }
+  .row select { flex: 1; }
+  .addBtn {
+    flex: 0 0 auto; width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--secondary-bg); font-size: 20px; font-weight: 700; cursor: pointer;
+  }
+  .segmented { display: flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
+  .segmented div { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-size: 13px; }
+  .segmented div.active { background: var(--button); color: var(--button-text); }
+  .calc-preview {
+    background: var(--secondary-bg); border-radius: 10px; padding: 10px 12px; font-size: 13px; margin-bottom: 14px;
+  }
+  .calc-preview div { display: flex; justify-content: space-between; padding: 2px 0; }
+  .submitBar {
+    position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px;
+    background: var(--bg); border-top: 1px solid var(--border);
+  }
+  button.primary {
+    width: 100%; padding: 14px; border-radius: 12px; border: none;
+    background: var(--button); color: var(--button-text); font-size: 16px; font-weight: 600; cursor: pointer;
+  }
+  button.primary:disabled { opacity: .5; }
+  .section { display: none; }
+  .section.active { display: block; }
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.4); display: none;
+    align-items: center; justify-content: center; padding: 20px; z-index: 50;
+  }
+  .overlay.show { display: flex; }
+  .modal {
+    background: var(--bg); border-radius: 14px; padding: 18px; max-width: 360px; width: 100%;
+  }
+  .modal h3 { margin-top: 0; }
+  .modal .line { display: flex; justify-content: space-between; padding: 5px 0; font-size: 14px; border-bottom: 1px solid var(--border); }
+  .modal .actions { display: flex; gap: 8px; margin-top: 16px; }
+  .modal .actions button { flex: 1; padding: 12px; border-radius: 10px; border: none; font-size: 14px; font-weight: 600; }
+  .btn-cancel { background: var(--secondary-bg); color: var(--text); }
+  .btn-confirm { background: var(--button); color: var(--button-text); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  td, th { padding: 8px 4px; border-bottom: 1px solid var(--border); text-align: left; }
+  .toast {
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+    background: #2ecc71; color: #fff; padding: 10px 18px; border-radius: 10px; font-size: 14px;
+    opacity: 0; pointer-events: none; transition: opacity .3s; z-index: 100;
+  }
+  .toast.show { opacity: 1; }
+  .locked { text-align: center; padding: 60px 20px; color: var(--hint); }
+  .locked pre { background: var(--secondary-bg); padding: 10px; border-radius: 8px; margin-top: 16px; text-align: left; }
+</style>
+</head>
+<body>
+
+<div id="lockedScreen" class="locked" style="display:none">
+  🔒 Доступ запрещён.<br>Обратитесь к администратору.
+  <div id="debugBox"></div>
+</div>
+
+<div id="app" style="display:none">
+  <h1>Учёт операций</h1>
+  <div class="hint" id="whoami"></div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="trade">Trade</div>
+    <div class="tab" data-tab="expense">Expense</div>
+    <div class="tab" data-tab="loan">Loan</div>
+    <div class="tab" data-tab="repayment">Repayment</div>
+    <div class="tab" data-tab="clients">Clients</div>
+  </div>
+
+  <div class="section" id="section-trade">
+    <div class="field">
+      <label>From</label>
+      <div class="row">
+        <select id="trade-from"></select>
+        <button class="addBtn" data-add="wallet" data-target="trade-from">+</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>To</label>
+      <div class="row">
+        <select id="trade-to"></select>
+        <button class="addBtn" data-add="wallet" data-target="trade-to">+</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Sum</label>
+      <input type="text" inputmode="decimal" id="trade-sum" placeholder="1234,56">
+    </div>
+    <div class="field">
+      <label>Расчёт по:</label>
+      <div class="segmented">
+        <div class="active" data-method="rate">Курс (Rate)</div>
+        <div data-method="fee">Комиссия (Fee)</div>
+      </div>
+      <input type="text" inputmode="decimal" id="trade-value" placeholder="напр. 1,01">
+    </div>
+    <div class="calc-preview">
+      <div><span>Rate</span><span id="calc-rate">—</span></div>
+      <div><span>Fee</span><span id="calc-fee">—</span></div>
+      <div><span>Profit</span><span id="calc-profit">—</span></div>
+    </div>
+    <div class="field">
+      <label>Comment (необязательно)</label>
+      <input type="text" id="trade-comment">
+    </div>
+  </div>
+
+  <div class="section" id="section-expense">
+    <div class="field">
+      <label>From</label>
+      <div class="row">
+        <select id="expense-from"></select>
+        <button class="addBtn" data-add="wallet" data-target="expense-from">+</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Purpose</label>
+      <div class="row">
+        <select id="expense-purpose"></select>
+        <button class="addBtn" data-add="purpose" data-target="expense-purpose">+</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Sum</label>
+      <input type="text" inputmode="decimal" id="expense-sum" placeholder="1234,56">
+    </div>
+    <div class="field">
+      <label>Comment (необязательно)</label>
+      <input type="text" id="expense-comment">
+    </div>
+  </div>
+
+  <div class="section" id="section-loan">
+    <div class="field">
+      <label>Client</label>
+      <div class="row">
+        <select id="loan-client"></select>
+        <button class="addBtn" data-add="client" data-target="loan-client">+</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>From</label>
+      <div class="row">
+        <select id="loan-from"></select>
+        <button class="addBtn" data-add="wallet" data-target="loan-from">+</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Sum</label>
+      <input type="text" inputmode="decimal" id="loan-sum" placeholder="1234,56">
+    </div>
+    <div class="field">
+      <label>Comment (необязательно)</label>
+      <input type="text" id="loan-comment">
+    </div>
+  </div>
+
+  <div class="section" id="section-repayment">
+    <div class="field">
+      <label>Client</label>
+      <div class="row">
+        <select id="repayment-client"></select>
+        <button class="addBtn" data-add="client" data-target="repayment-client">+</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>To</label>
+      <div class="row">
+        <select id="repayment-to"></select>
+        <button class="addBtn" data-add="wallet" data-target="repayment-to">+</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Sum</label>
+      <input type="text" inputmode="decimal" id="repayment-sum" placeholder="1234,56">
+    </div>
+    <div class="field">
+      <label>Comment (необязательно)</label>
+      <input type="text" id="repayment-comment">
+    </div>
+  </div>
+
+  <div class="section" id="section-clients">
+    <div class="field">
+      <label>Раздел</label>
+      <div class="segmented" id="clients-report-type">
+        <div class="active" data-report="monitoring">Debts monitoring</div>
+        <div data-report="history">Debts history</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Охват</label>
+      <div class="segmented" id="clients-report-scope">
+        <div class="active" data-scope="one">По клиенту</div>
+        <div data-scope="all">Сводка по всем</div>
+      </div>
+    </div>
+    <div class="field" id="clients-select-wrap">
+      <label>Client</label>
+      <select id="clients-select"></select>
+    </div>
+    <button class="primary" id="btnRunReport" style="margin-bottom:14px;">Показать</button>
+    <div id="reportOutput"></div>
+  </div>
+</div>
+
+<div class="submitBar" id="submitBar" style="display:none">
+  <button class="primary" id="btnSubmit">Проверить и отправить</button>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3>Подтвердите запись</h3>
+    <div id="modalLines"></div>
+    <div class="actions">
+      <button class="btn-cancel" id="btnCancel">Исправить</button>
+      <button class="btn-confirm" id="btnConfirm">Записать</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ==================================================================
+ * !!! ВСТАВЬТЕ СЮДА СВОЙ APPS SCRIPT WEB APP URL (заканчивается на /exec) !!!
+ * ================================================================== */
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxaVsCFG51RKWYtl5zEKah1hg4tsNkCvI-VPgSbDXsjcmZClTqf-0vMfxcsQzAPdG4k/exec';
+
+var tg = window.Telegram && window.Telegram.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+var initData = tg ? tg.initData : '';
+
+var currentTab = 'trade';
+var refData = { wallets: [], purposes: [], clients: [] };
+var operatorName = '';
+
+function callApi(action, payload) {
+  return fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: action, initData: initData, payload: payload || {} })
+  })
+  .then(function (r) { return r.json(); })
+  .then(function (res) {
+    if (!res.ok) throw new Error(res.error || 'Неизвестная ошибка сервера');
+    return res.data;
+  });
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function () { t.classList.remove('show'); }, 2200);
+}
+
+function fillSelect(id, values, keepValue) {
+  var sel = document.getElementById(id);
+  var prev = keepValue || sel.value;
+  sel.innerHTML = '';
+  values.forEach(function (v) {
+    var opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    sel.appendChild(opt);
+  });
+  if (prev && values.indexOf(prev) !== -1) sel.value = prev;
+}
+
+function refreshDropdowns() {
+  ['trade-from', 'trade-to', 'expense-from', 'loan-from', 'repayment-to'].forEach(function (id) {
+    fillSelect(id, refData.wallets);
+  });
+  fillSelect('expense-purpose', refData.purposes);
+  ['loan-client', 'repayment-client', 'clients-select'].forEach(function (id) {
+    fillSelect(id, refData.clients);
+  });
+}
+
+function loadRefData() {
+  Promise.all([
+    callApi('getWallets'),
+    callApi('getPurposes'),
+    callApi('getClients')
+  ]).then(function (res) {
+    refData.wallets = res[0]; refData.purposes = res[1]; refData.clients = res[2];
+    refreshDropdowns();
+  }).catch(function (err) { alert('Ошибка загрузки справочников: ' + err.message); });
+}
+
+document.querySelectorAll('.tab').forEach(function (tab) {
+  tab.addEventListener('click', function () {
+    document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
+    tab.classList.add('active');
+    currentTab = tab.dataset.tab;
+    document.querySelectorAll('.section').forEach(function (s) { s.classList.remove('active'); });
+    document.getElementById('section-' + currentTab).classList.add('active');
+    document.getElementById('submitBar').style.display = (currentTab === 'clients') ? 'none' : 'block';
+  });
+});
+
+document.querySelectorAll('.addBtn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var kind = btn.dataset.add;
+    var target = btn.dataset.target;
+    var name = prompt('Новое значение:');
+    if (!name || !name.trim()) return;
+    var fnMap = { wallet: 'addWallet', purpose: 'addPurpose', client: 'addClient' };
+    callApi(fnMap[kind], { name: name.trim() }).then(function (list) {
+      if (kind === 'wallet') refData.wallets = list;
+      if (kind === 'purpose') refData.purposes = list;
+      if (kind === 'client') refData.clients = list;
+      refreshDropdowns();
+      document.getElementById(target).value = name.trim();
+      showToast('Добавлено: ' + name.trim());
+    }).catch(function (err) { alert('Ошибка: ' + err.message); });
+  });
+});
+
+var tradeMethod = 'rate';
+document.querySelectorAll('#section-trade .segmented div').forEach(function (el) {
+  el.addEventListener('click', function () {
+    document.querySelectorAll('#section-trade .segmented div').forEach(function (d) { d.classList.remove('active'); });
+    el.classList.add('active');
+    tradeMethod = el.dataset.method;
+    document.getElementById('trade-value').placeholder = tradeMethod === 'rate' ? 'напр. 1,01' : 'напр. 50';
+    recalcTrade();
+  });
+});
+document.getElementById('trade-sum').addEventListener('input', recalcTrade);
+document.getElementById('trade-value').addEventListener('input', recalcTrade);
+
+function parseLocal(s) {
+  s = String(s || '').trim().replace(/\s/g, '');
+  if (!s) return NaN;
+  if (s.indexOf(',') !== -1 && s.indexOf('.') !== -1) s = s.replace(/\./g, '').replace(',', '.');
+  else if (s.indexOf(',') !== -1) s = s.replace(',', '.');
+  return parseFloat(s);
+}
+function fmt(n) {
+  if (isNaN(n)) return '—';
+  return n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function recalcTrade() {
+  var sum = parseLocal(document.getElementById('trade-sum').value);
+  var value = parseLocal(document.getElementById('trade-value').value);
+  var rate, fee;
+  if (isNaN(sum) || isNaN(value) || sum === 0) {
+    document.getElementById('calc-rate').textContent = '—';
+    document.getElementById('calc-fee').textContent = '—';
+    document.getElementById('calc-profit').textContent = '—';
+    return;
+  }
+  if (tradeMethod === 'rate') { rate = value; fee = sum * rate - sum; }
+  else { fee = value; rate = (sum + fee) / sum; }
+  document.getElementById('calc-rate').textContent = fmt(rate);
+  document.getElementById('calc-fee').textContent = fmt(fee);
+  document.getElementById('calc-profit').textContent = fmt(fee);
+}
+
+function val(id) { return document.getElementById(id).value; }
+
+function collectPayload() {
+  if (currentTab === 'trade') {
+    return {
+      type: 'trade',
+      from: val('trade-from'), to: val('trade-to'), sum: val('trade-sum'),
+      method: tradeMethod, value: val('trade-value'), comment: val('trade-comment')
+    };
+  }
+  if (currentTab === 'expense') {
+    return {
+      type: 'expense',
+      from: val('expense-from'), purpose: val('expense-purpose'),
+      sum: val('expense-sum'), comment: val('expense-comment')
+    };
+  }
+  if (currentTab === 'loan') {
+    return {
+      type: 'loan',
+      client: val('loan-client'), from: val('loan-from'),
+      sum: val('loan-sum'), comment: val('loan-comment')
+    };
+  }
+  if (currentTab === 'repayment') {
+    return {
+      type: 'repayment',
+      client: val('repayment-client'), to: val('repayment-to'),
+      sum: val('repayment-sum'), comment: val('repayment-comment')
+    };
+  }
+}
+
+var labelsRu = {
+  from: 'From', to: 'To', sum: 'Sum', purpose: 'Purpose', client: 'Client',
+  method: 'Метод', value: 'Значение', comment: 'Comment'
+};
+
+document.getElementById('btnSubmit').addEventListener('click', function () {
+  var payload = collectPayload();
+  if (!payload.sum) { alert('Заполните Sum'); return; }
+  var modal = document.getElementById('modalLines');
+  modal.innerHTML = '';
+  Object.keys(payload).forEach(function (k) {
+    if (k === 'type' || !payload[k]) return;
+    var line = document.createElement('div');
+    line.className = 'line';
+    line.innerHTML = '<span>' + (labelsRu[k] || k) + '</span><span>' + payload[k] + '</span>';
+    modal.appendChild(line);
+  });
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('overlay').dataset.payload = JSON.stringify(payload);
+});
+
+document.getElementById('btnCancel').addEventListener('click', function () {
+  document.getElementById('overlay').classList.remove('show');
+});
+
+document.getElementById('btnConfirm').addEventListener('click', function () {
+  var payload = JSON.parse(document.getElementById('overlay').dataset.payload);
+  var btn = document.getElementById('btnConfirm');
+  btn.disabled = true; btn.textContent = 'Отправка...';
+  var fnMap = { trade: 'submitTrade', expense: 'submitExpense', loan: 'submitLoan', repayment: 'submitRepayment' };
+  callApi(fnMap[payload.type], payload).then(function () {
+    document.getElementById('overlay').classList.remove('show');
+    btn.disabled = false; btn.textContent = 'Записать';
+    showToast('Записано ✓');
+    resetForm(payload.type);
+  }).catch(function (err) {
+    btn.disabled = false; btn.textContent = 'Записать';
+    alert('Ошибка: ' + err.message);
+  });
+});
+
+function resetForm(type) {
+  document.querySelectorAll('#section-' + type + ' input[type=text]').forEach(function (i) { i.value = ''; });
+  if (type === 'trade') recalcTrade();
+}
+
+document.querySelectorAll('#clients-report-scope div').forEach(function (el) {
+  el.addEventListener('click', function () {
+    document.querySelectorAll('#clients-report-scope div').forEach(function (d) { d.classList.remove('active'); });
+    el.classList.add('active');
+    document.getElementById('clients-select-wrap').style.display = el.dataset.scope === 'one' ? 'block' : 'none';
+  });
+});
+document.querySelectorAll('#clients-report-type div').forEach(function (el) {
+  el.addEventListener('click', function () {
+    document.querySelectorAll('#clients-report-type div').forEach(function (d) { d.classList.remove('active'); });
+    el.classList.add('active');
+  });
+});
+
+document.getElementById('btnRunReport').addEventListener('click', function () {
+  var reportType = document.querySelector('#clients-report-type .active').dataset.report;
+  var scope = document.querySelector('#clients-report-scope .active').dataset.scope;
+  var client = document.getElementById('clients-select').value;
+  var out = document.getElementById('reportOutput');
+  out.innerHTML = 'Загрузка...';
+
+  var call;
+  if (reportType === 'monitoring') {
+    call = (scope === 'all') ? callApi('getAllBalances') : callApi('getClientBalance', { client: client });
+  } else {
+    call = (scope === 'all') ? callApi('getAllHistory') : callApi('getClientHistory', { client: client });
+  }
+  call.then(function (data) {
+    if (reportType === 'monitoring') renderBalances(scope === 'all' ? data : [data]);
+    else renderHistory(data);
+  }).catch(function (err) { out.innerHTML = 'Ошибка: ' + err.message; });
+});
+
+function renderBalances(rows) {
+  var out = document.getElementById('reportOutput');
+  if (!rows.length) { out.innerHTML = '<div class="hint">Нет данных</div>'; return; }
+  var html = '<table><tr><th>Client</th><th>Balance</th></tr>';
+  rows.forEach(function (r) {
+    html += '<tr><td>' + r.client + '</td><td>' + fmt(r.balance) + '</td></tr>';
+  });
+  html += '</table>';
+  out.innerHTML = html;
+}
+function renderHistory(rows) {
+  var out = document.getElementById('reportOutput');
+  if (!rows.length) { out.innerHTML = '<div class="hint">Нет данных</div>'; return; }
+  var html = '<table><tr><th>Дата</th><th>Клиент</th><th>Тип</th><th>Sum</th></tr>';
+  rows.forEach(function (r) {
+    var d = new Date(r.Timestamp);
+    html += '<tr><td>' + d.toLocaleDateString('ru-RU') + '</td><td>' + r.Client + '</td><td>' + r.type + '</td><td>' + fmt(Number(r.Sum)) + '</td></tr>';
+  });
+  html += '</table>';
+  out.innerHTML = html;
+}
+
+/* ---------- старт: проверка доступа ---------- */
+var clientDebug = {
+  hasTelegramObject: !!window.Telegram,
+  hasWebApp: !!tg,
+  locationHashLength: (window.location.hash || '').length,
+  platform: tg ? tg.platform : null,
+  version: tg ? tg.version : null
+};
+
+function showDebugInfo() {
+  callApi('debugAuth').then(function (info) {
+    document.getElementById('debugBox').innerHTML =
+      '<pre style="font-size:11px;white-space:pre-wrap">CLIENT:\n' + JSON.stringify(clientDebug, null, 2) +
+      '\n\nSERVER:\n' + JSON.stringify(info, null, 2) + '</pre>';
+  }).catch(function (err) {
+    document.getElementById('debugBox').innerHTML =
+      '<pre style="font-size:11px;color:red">' + err.message + '</pre>';
+  });
+}
+
+callApi('identifyOperator').then(function (op) {
+  if (!op) {
+    document.getElementById('lockedScreen').style.display = 'block';
+    showDebugInfo();
+    return;
+  }
+  operatorName = op.name;
+  document.getElementById('whoami').textContent = 'Вы вошли как: ' + operatorName;
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('submitBar').style.display = 'block';
+  loadRefData();
+}).catch(function (err) {
+  document.getElementById('lockedScreen').style.display = 'block';
+  document.getElementById('debugBox').innerHTML =
+    '<pre style="font-size:11px;color:red">' + err.message + '</pre>';
+});
+</script>
+</body>
+</html>
