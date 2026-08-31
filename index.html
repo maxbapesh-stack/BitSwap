@@ -110,7 +110,7 @@
 
 <div id="lockedScreen" class="locked" style="display:none">
   🔒 Доступ запрещён.<br>Обратитесь к администратору.
-  <div style="font-size:10px;color:#ccc;margin-top:20px">build: v3-debug</div>
+  <div style="font-size:10px;color:#ccc;margin-top:20px">build: v4-raw-debug</div>
 </div>
 
 <div id="app" style="display:none">
@@ -324,7 +324,7 @@
 
 <script>
 /* !!! ВСТАВЬТЕ СЮДА СВОЙ APPS SCRIPT WEB APP URL (заканчивается на /exec) !!! */
-var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKHLtSA_EJf6FQj1ikJOvqV4p5-U6WnZHTWITsbNrSGGN0MT_8RtH_wf40PZHyisLf/exec';
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyfZdiUjjlp6iAnWMj5UYsl12_NOZQ_UOQQ4TA-3mR-RvoqHK5_cpOtEb74wP6nclBm/exec';
 
 var tg = window.Telegram && window.Telegram.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
@@ -678,6 +678,13 @@ function renderHistory(rows) {
 callApi('identifyOperator').then(function (op) {
   if (!op) {
     document.getElementById('lockedScreen').style.display = 'block';
+    callApi('identifyOperatorRaw').then(function (info) {
+      document.getElementById('lockedScreen').innerHTML +=
+        '<pre style="font-size:11px;text-align:left;margin-top:16px;color:green">RAW OK: ' + JSON.stringify(info) + '</pre>';
+    }).catch(function (err) {
+      document.getElementById('lockedScreen').innerHTML +=
+        '<pre style="font-size:11px;text-align:left;margin-top:16px;color:red">RAW ERROR: ' + err.message + '</pre>';
+    });
     callApi('debugAuth').then(function (info) {
       document.getElementById('lockedScreen').innerHTML +=
         '<pre style="font-size:11px;text-align:left;margin-top:16px;white-space:pre-wrap">' + JSON.stringify(info, null, 2) + '</pre>';
