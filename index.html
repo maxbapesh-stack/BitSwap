@@ -677,6 +677,7 @@ function renderHistory(rows) {
 callApi('identifyOperator').then(function (op) {
   if (!op) {
     document.getElementById('lockedScreen').style.display = 'block';
+    document.getElementById('lockedScreen').innerHTML += '<pre style="font-size:11px;text-align:left;margin-top:16px">DEBUG: identifyOperator вернул null.\nAPPS_SCRIPT_URL = ' + APPS_SCRIPT_URL + '</pre>';
     return;
   }
   operatorName = op.name;
@@ -684,8 +685,9 @@ callApi('identifyOperator').then(function (op) {
   document.getElementById('app').style.display = 'block';
   document.getElementById('submitBar').style.display = 'block';
   loadRefData();
-}).catch(function () {
+}).catch(function (err) {
   document.getElementById('lockedScreen').style.display = 'block';
+  document.getElementById('lockedScreen').innerHTML += '<pre style="font-size:11px;text-align:left;margin-top:16px;color:red">DEBUG: ' + err.message + '\nAPPS_SCRIPT_URL = ' + APPS_SCRIPT_URL + '</pre>';
 });
 </script>
 </body>
