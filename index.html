@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   :root {
@@ -12,86 +13,103 @@
     --button-text: #ffffff;
     --secondary-bg: #f0f0f3;
     --border: #e2e2e6;
+    --green: #2ecc71;
+    --red: #e74c3c;
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0;
-    padding: 16px 16px 90px 16px;
+    padding: 16px 16px calc(100px + env(safe-area-inset-bottom)) 16px;
     background: var(--bg);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-size: 15px;
+    font-size: 16px;
   }
-  h1 { font-size: 18px; margin: 4px 0 16px; }
+  h1 { font-size: 20px; margin: 4px 0 16px; }
   .hint { color: var(--hint); font-size: 13px; margin-bottom: 16px; }
   .tabs { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; }
   .tab {
-    flex: 1 1 auto; text-align: center; padding: 10px 8px; border-radius: 10px;
+    flex: 1 1 auto; min-width: 88px; text-align: center; padding: 12px 8px; border-radius: 12px;
     background: var(--secondary-bg); font-weight: 600; font-size: 13px; cursor: pointer;
-    border: 2px solid transparent;
+    border: 2px solid transparent; user-select: none;
   }
   .tab.active { background: var(--button); color: var(--button-text); }
-  .field { margin-bottom: 14px; }
-  label { display: block; font-size: 13px; color: var(--hint); margin-bottom: 6px; }
+  .field { margin-bottom: 16px; }
+  label { display: block; font-size: 14px; color: var(--hint); margin-bottom: 7px; font-weight: 500; }
   select, input[type=text] {
-    width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);
-    font-size: 15px; background: var(--bg); color: var(--text);
+    width: 100%; padding: 14px; border-radius: 12px; border: 1.5px solid var(--border);
+    font-size: 16px; background: var(--bg); color: var(--text); min-height: 50px;
   }
+  select:focus, input[type=text]:focus { border-color: var(--button); outline: none; }
   .row { display: flex; gap: 8px; align-items: flex-end; }
   .row select { flex: 1; }
   .addBtn {
-    flex: 0 0 auto; width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--border);
-    background: var(--secondary-bg); font-size: 20px; font-weight: 700; cursor: pointer;
+    flex: 0 0 auto; width: 50px; height: 50px; border-radius: 12px; border: 1.5px solid var(--border);
+    background: var(--secondary-bg); font-size: 24px; font-weight: 700; cursor: pointer; color: var(--button);
   }
-  .segmented { display: flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
-  .segmented div { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-size: 13px; }
+  .segmented { display: flex; border: 1.5px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
+  .segmented div { flex: 1; text-align: center; padding: 13px 6px; cursor: pointer; font-size: 14px; font-weight: 500; user-select: none; }
   .segmented div.active { background: var(--button); color: var(--button-text); }
   .calc-preview {
-    background: var(--secondary-bg); border-radius: 10px; padding: 10px 12px; font-size: 13px; margin-bottom: 14px;
+    background: var(--secondary-bg); border-radius: 12px; padding: 12px 14px; font-size: 14px; margin-bottom: 16px;
   }
-  .calc-preview div { display: flex; justify-content: space-between; padding: 2px 0; }
+  .calc-preview div { display: flex; justify-content: space-between; padding: 4px 0; }
+  .calc-preview .big { font-size: 17px; font-weight: 700; padding-top: 6px; border-top: 1px solid var(--border); margin-top: 4px; }
   .submitBar {
-    position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px;
+    position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)) 16px;
     background: var(--bg); border-top: 1px solid var(--border);
   }
   button.primary {
-    width: 100%; padding: 14px; border-radius: 12px; border: none;
-    background: var(--button); color: var(--button-text); font-size: 16px; font-weight: 600; cursor: pointer;
+    width: 100%; padding: 16px; border-radius: 14px; border: none;
+    background: var(--button); color: var(--button-text); font-size: 17px; font-weight: 600; cursor: pointer;
   }
   button.primary:disabled { opacity: .5; }
   .section { display: none; }
   .section.active { display: block; }
   .overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,.4); display: none;
-    align-items: center; justify-content: center; padding: 20px; z-index: 50;
+    position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none;
+    align-items: flex-end; justify-content: center; padding: 0; z-index: 50;
   }
   .overlay.show { display: flex; }
   .modal {
-    background: var(--bg); border-radius: 14px; padding: 18px; max-width: 360px; width: 100%;
+    background: var(--bg); border-radius: 20px 20px 0 0; padding: 20px; max-width: 480px; width: 100%;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
   }
-  .modal h3 { margin-top: 0; }
-  .modal .line { display: flex; justify-content: space-between; padding: 5px 0; font-size: 14px; border-bottom: 1px solid var(--border); }
-  .modal .actions { display: flex; gap: 8px; margin-top: 16px; }
-  .modal .actions button { flex: 1; padding: 12px; border-radius: 10px; border: none; font-size: 14px; font-weight: 600; }
+  .modal h3 { margin-top: 0; font-size: 18px; }
+  .modal .line { display: flex; justify-content: space-between; padding: 8px 0; font-size: 15px; border-bottom: 1px solid var(--border); }
+  .modal .actions { display: flex; gap: 10px; margin-top: 18px; }
+  .modal .actions button { flex: 1; padding: 14px; border-radius: 12px; border: none; font-size: 15px; font-weight: 600; }
   .btn-cancel { background: var(--secondary-bg); color: var(--text); }
   .btn-confirm { background: var(--button); color: var(--button-text); }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  td, th { padding: 8px 4px; border-bottom: 1px solid var(--border); text-align: left; }
+  td, th { padding: 10px 6px; border-bottom: 1px solid var(--border); text-align: left; }
+  th { font-size: 12px; color: var(--hint); font-weight: 600; }
   .toast {
-    position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
-    background: #2ecc71; color: #fff; padding: 10px 18px; border-radius: 10px; font-size: 14px;
-    opacity: 0; pointer-events: none; transition: opacity .3s; z-index: 100;
+    position: fixed; top: calc(16px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+    background: var(--green); color: #fff; padding: 12px 20px; border-radius: 12px; font-size: 14px;
+    opacity: 0; pointer-events: none; transition: opacity .3s; z-index: 100; white-space: nowrap;
   }
   .toast.show { opacity: 1; }
   .locked { text-align: center; padding: 60px 20px; color: var(--hint); }
-  .locked pre { background: var(--secondary-bg); padding: 10px; border-radius: 8px; margin-top: 16px; text-align: left; }
+  .balanceCard {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--secondary-bg); border-radius: 14px; padding: 16px; margin-bottom: 10px;
+  }
+  .balanceCard .name { font-size: 15px; font-weight: 600; }
+  .balanceCard .amount { font-size: 18px; font-weight: 700; }
+  .balanceCard .amount.neg { color: var(--red); }
+  .sectionHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .typeBadge {
+    display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;
+    background: var(--secondary-bg);
+  }
 </style>
 </head>
 <body>
 
 <div id="lockedScreen" class="locked" style="display:none">
   🔒 Доступ запрещён.<br>Обратитесь к администратору.
-  <div id="debugBox"></div>
 </div>
 
 <div id="app" style="display:none">
@@ -103,9 +121,12 @@
     <div class="tab" data-tab="expense">Expense</div>
     <div class="tab" data-tab="loan">Loan</div>
     <div class="tab" data-tab="repayment">Repayment</div>
+    <div class="tab" data-tab="balances">Balances</div>
+    <div class="tab" data-tab="history">История</div>
     <div class="tab" data-tab="clients">Clients</div>
   </div>
 
+  <!-- ===== TRADE ===== -->
   <div class="section" id="section-trade">
     <div class="field">
       <label>From</label>
@@ -122,8 +143,8 @@
       </div>
     </div>
     <div class="field">
-      <label>Sum</label>
-      <input type="text" inputmode="decimal" id="trade-sum" placeholder="1234,56">
+      <label>Sum from (списывается)</label>
+      <input type="text" inputmode="decimal" id="trade-sumfrom" placeholder="1234,56">
     </div>
     <div class="field">
       <label>Расчёт по:</label>
@@ -135,8 +156,8 @@
     </div>
     <div class="calc-preview">
       <div><span>Rate</span><span id="calc-rate">—</span></div>
-      <div><span>Fee</span><span id="calc-fee">—</span></div>
-      <div><span>Profit</span><span id="calc-profit">—</span></div>
+      <div><span>Fee (Profit)</span><span id="calc-fee">—</span></div>
+      <div class="big"><span>Sum to (зачисляется)</span><span id="calc-sumto">—</span></div>
     </div>
     <div class="field">
       <label>Comment (необязательно)</label>
@@ -144,6 +165,7 @@
     </div>
   </div>
 
+  <!-- ===== EXPENSE ===== -->
   <div class="section" id="section-expense">
     <div class="field">
       <label>From</label>
@@ -169,6 +191,7 @@
     </div>
   </div>
 
+  <!-- ===== LOAN ===== -->
   <div class="section" id="section-loan">
     <div class="field">
       <label>Client</label>
@@ -194,6 +217,7 @@
     </div>
   </div>
 
+  <!-- ===== REPAYMENT ===== -->
   <div class="section" id="section-repayment">
     <div class="field">
       <label>Client</label>
@@ -219,6 +243,21 @@
     </div>
   </div>
 
+  <!-- ===== BALANCES ===== -->
+  <div class="section" id="section-balances">
+    <div class="sectionHeader">
+      <div class="hint" style="margin:0">Ваши кошельки</div>
+      <button class="addBtn" id="btnOpenAdjust">+</button>
+    </div>
+    <div id="balancesList"><div class="hint">Загрузка...</div></div>
+  </div>
+
+  <!-- ===== HISTORY (все операции) ===== -->
+  <div class="section" id="section-history">
+    <div id="historyOutput"><div class="hint">Загрузка...</div></div>
+  </div>
+
+  <!-- ===== CLIENTS (долги) ===== -->
   <div class="section" id="section-clients">
     <div class="field">
       <label>Раздел</label>
@@ -238,7 +277,7 @@
       <label>Client</label>
       <select id="clients-select"></select>
     </div>
-    <button class="primary" id="btnRunReport" style="margin-bottom:14px;">Показать</button>
+    <button class="primary" id="btnRunReport" style="margin-bottom:16px;">Показать</button>
     <div id="reportOutput"></div>
   </div>
 </div>
@@ -258,12 +297,32 @@
   </div>
 </div>
 
+<div class="overlay" id="adjustOverlay">
+  <div class="modal">
+    <h3>Корректировка баланса</h3>
+    <div class="field">
+      <label>Кошелёк</label>
+      <select id="adjust-wallet"></select>
+    </div>
+    <div class="field">
+      <label>Сумма (+ пополнение, − списание)</label>
+      <input type="text" inputmode="decimal" id="adjust-amount" placeholder="напр. 500 или -200">
+    </div>
+    <div class="field">
+      <label>Comment (необязательно)</label>
+      <input type="text" id="adjust-comment" placeholder="напр. стартовый остаток">
+    </div>
+    <div class="actions">
+      <button class="btn-cancel" id="adjustCancel">Отмена</button>
+      <button class="btn-confirm" id="adjustSave">Сохранить</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-/* ==================================================================
- * !!! ВСТАВЬТЕ СЮДА СВОЙ APPS SCRIPT WEB APP URL (заканчивается на /exec) !!!
- * ================================================================== */
+/* !!! ВСТАВЬТЕ СЮДА СВОЙ APPS SCRIPT WEB APP URL (заканчивается на /exec) !!! */
 var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxuIpHhC37bcwoA3qc5NuiFhJXfePCTthEqYRXAqUrV7eV6WD266jUOs3hXCCdjYBye/exec';
 
 var tg = window.Telegram && window.Telegram.WebApp;
@@ -273,6 +332,7 @@ var initData = tg ? tg.initData : '';
 var currentTab = 'trade';
 var refData = { wallets: [], purposes: [], clients: [] };
 var operatorName = '';
+var loadedTabs = {};
 
 function callApi(action, payload) {
   return fetch(APPS_SCRIPT_URL, {
@@ -307,7 +367,7 @@ function fillSelect(id, values, keepValue) {
 }
 
 function refreshDropdowns() {
-  ['trade-from', 'trade-to', 'expense-from', 'loan-from', 'repayment-to'].forEach(function (id) {
+  ['trade-from', 'trade-to', 'expense-from', 'loan-from', 'repayment-to', 'adjust-wallet'].forEach(function (id) {
     fillSelect(id, refData.wallets);
   });
   fillSelect('expense-purpose', refData.purposes);
@@ -317,7 +377,7 @@ function refreshDropdowns() {
 }
 
 function loadRefData() {
-  Promise.all([
+  return Promise.all([
     callApi('getWallets'),
     callApi('getPurposes'),
     callApi('getClients')
@@ -327,6 +387,7 @@ function loadRefData() {
   }).catch(function (err) { alert('Ошибка загрузки справочников: ' + err.message); });
 }
 
+/* ---------- вкладки ---------- */
 document.querySelectorAll('.tab').forEach(function (tab) {
   tab.addEventListener('click', function () {
     document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
@@ -334,11 +395,16 @@ document.querySelectorAll('.tab').forEach(function (tab) {
     currentTab = tab.dataset.tab;
     document.querySelectorAll('.section').forEach(function (s) { s.classList.remove('active'); });
     document.getElementById('section-' + currentTab).classList.add('active');
-    document.getElementById('submitBar').style.display = (currentTab === 'clients') ? 'none' : 'block';
+    var noSubmit = (currentTab === 'clients' || currentTab === 'balances' || currentTab === 'history');
+    document.getElementById('submitBar').style.display = noSubmit ? 'none' : 'block';
+
+    if (currentTab === 'balances') loadBalances();
+    if (currentTab === 'history' && !loadedTabs.history) { loadedTabs.history = true; loadHistory(); }
   });
 });
 
-document.querySelectorAll('.addBtn').forEach(function (btn) {
+/* ---------- добавление новых значений в справочники ---------- */
+document.querySelectorAll('.addBtn[data-add]').forEach(function (btn) {
   btn.addEventListener('click', function () {
     var kind = btn.dataset.add;
     var target = btn.dataset.target;
@@ -350,12 +416,13 @@ document.querySelectorAll('.addBtn').forEach(function (btn) {
       if (kind === 'purpose') refData.purposes = list;
       if (kind === 'client') refData.clients = list;
       refreshDropdowns();
-      document.getElementById(target).value = name.trim();
+      if (target) document.getElementById(target).value = name.trim();
       showToast('Добавлено: ' + name.trim());
     }).catch(function (err) { alert('Ошибка: ' + err.message); });
   });
 });
 
+/* ---------- Trade: Rate/Fee + live-пересчёт Sum to ---------- */
 var tradeMethod = 'rate';
 document.querySelectorAll('#section-trade .segmented div').forEach(function (el) {
   el.addEventListener('click', function () {
@@ -366,7 +433,7 @@ document.querySelectorAll('#section-trade .segmented div').forEach(function (el)
     recalcTrade();
   });
 });
-document.getElementById('trade-sum').addEventListener('input', recalcTrade);
+document.getElementById('trade-sumfrom').addEventListener('input', recalcTrade);
 document.getElementById('trade-value').addEventListener('input', recalcTrade);
 
 function parseLocal(s) {
@@ -377,24 +444,28 @@ function parseLocal(s) {
   return parseFloat(s);
 }
 function fmt(n) {
-  if (isNaN(n)) return '—';
-  return n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (isNaN(n) || n === null || n === undefined) return '—';
+  return Number(n).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+var lastCalc = {};
 function recalcTrade() {
-  var sum = parseLocal(document.getElementById('trade-sum').value);
+  var sumFrom = parseLocal(document.getElementById('trade-sumfrom').value);
   var value = parseLocal(document.getElementById('trade-value').value);
-  var rate, fee;
-  if (isNaN(sum) || isNaN(value) || sum === 0) {
+  var rate, fee, sumTo;
+  if (isNaN(sumFrom) || isNaN(value) || sumFrom === 0) {
     document.getElementById('calc-rate').textContent = '—';
     document.getElementById('calc-fee').textContent = '—';
-    document.getElementById('calc-profit').textContent = '—';
+    document.getElementById('calc-sumto').textContent = '—';
+    lastCalc = {};
     return;
   }
-  if (tradeMethod === 'rate') { rate = value; fee = sum * rate - sum; }
-  else { fee = value; rate = (sum + fee) / sum; }
+  if (tradeMethod === 'rate') { rate = value; fee = sumFrom * rate - sumFrom; }
+  else { fee = value; rate = (sumFrom + fee) / sumFrom; }
+  sumTo = sumFrom + fee;
   document.getElementById('calc-rate').textContent = fmt(rate);
   document.getElementById('calc-fee').textContent = fmt(fee);
-  document.getElementById('calc-profit').textContent = fmt(fee);
+  document.getElementById('calc-sumto').textContent = fmt(sumTo);
+  lastCalc = { rate: rate, fee: fee, sumTo: sumTo };
 }
 
 function val(id) { return document.getElementById(id).value; }
@@ -403,7 +474,7 @@ function collectPayload() {
   if (currentTab === 'trade') {
     return {
       type: 'trade',
-      from: val('trade-from'), to: val('trade-to'), sum: val('trade-sum'),
+      from: val('trade-from'), to: val('trade-to'), sumFrom: val('trade-sumfrom'),
       method: tradeMethod, value: val('trade-value'), comment: val('trade-comment')
     };
   }
@@ -431,13 +502,14 @@ function collectPayload() {
 }
 
 var labelsRu = {
-  from: 'From', to: 'To', sum: 'Sum', purpose: 'Purpose', client: 'Client',
+  from: 'From', to: 'To', sum: 'Sum', sumFrom: 'Sum from', purpose: 'Purpose', client: 'Client',
   method: 'Метод', value: 'Значение', comment: 'Comment'
 };
 
 document.getElementById('btnSubmit').addEventListener('click', function () {
   var payload = collectPayload();
-  if (!payload.sum) { alert('Заполните Sum'); return; }
+  var mainSum = payload.sum || payload.sumFrom;
+  if (!mainSum) { alert('Заполните Sum'); return; }
   var modal = document.getElementById('modalLines');
   modal.innerHTML = '';
   Object.keys(payload).forEach(function (k) {
@@ -447,6 +519,12 @@ document.getElementById('btnSubmit').addEventListener('click', function () {
     line.innerHTML = '<span>' + (labelsRu[k] || k) + '</span><span>' + payload[k] + '</span>';
     modal.appendChild(line);
   });
+  if (payload.type === 'trade' && lastCalc.sumTo !== undefined) {
+    var line = document.createElement('div');
+    line.className = 'line';
+    line.innerHTML = '<span>Sum to (расчётно)</span><span>' + fmt(lastCalc.sumTo) + '</span>';
+    modal.appendChild(line);
+  }
   document.getElementById('overlay').classList.add('show');
   document.getElementById('overlay').dataset.payload = JSON.stringify(payload);
 });
@@ -465,6 +543,7 @@ document.getElementById('btnConfirm').addEventListener('click', function () {
     btn.disabled = false; btn.textContent = 'Записать';
     showToast('Записано ✓');
     resetForm(payload.type);
+    loadedTabs.history = false;
   }).catch(function (err) {
     btn.disabled = false; btn.textContent = 'Записать';
     alert('Ошибка: ' + err.message);
@@ -476,6 +555,69 @@ function resetForm(type) {
   if (type === 'trade') recalcTrade();
 }
 
+/* ---------- Balances ---------- */
+function loadBalances() {
+  var out = document.getElementById('balancesList');
+  out.innerHTML = '<div class="hint">Загрузка...</div>';
+  callApi('getWalletBalances').then(function (rows) {
+    if (!rows.length) { out.innerHTML = '<div class="hint">У вас пока нет кошельков — добавьте через "+"</div>'; return; }
+    out.innerHTML = rows.map(function (r) {
+      var neg = r.balance < 0 ? ' neg' : '';
+      return '<div class="balanceCard"><div class="name">' + r.wallet + '</div><div class="amount' + neg + '">' + fmt(r.balance) + '</div></div>';
+    }).join('');
+  }).catch(function (err) { out.innerHTML = 'Ошибка: ' + err.message; });
+}
+
+document.getElementById('btnOpenAdjust').addEventListener('click', function () {
+  fillSelect('adjust-wallet', refData.wallets);
+  document.getElementById('adjust-amount').value = '';
+  document.getElementById('adjust-comment').value = '';
+  document.getElementById('adjustOverlay').classList.add('show');
+});
+document.getElementById('adjustCancel').addEventListener('click', function () {
+  document.getElementById('adjustOverlay').classList.remove('show');
+});
+document.getElementById('adjustSave').addEventListener('click', function () {
+  var wallet = document.getElementById('adjust-wallet').value;
+  var amount = document.getElementById('adjust-amount').value;
+  var comment = document.getElementById('adjust-comment').value;
+  if (!wallet) { alert('Нет ни одного кошелька — сначала добавьте его в любой из форм через "+"'); return; }
+  if (!amount) { alert('Заполните сумму'); return; }
+  var btn = document.getElementById('adjustSave');
+  btn.disabled = true; btn.textContent = 'Сохранение...';
+  callApi('submitAdjustment', { wallet: wallet, amount: amount, comment: comment }).then(function () {
+    btn.disabled = false; btn.textContent = 'Сохранить';
+    document.getElementById('adjustOverlay').classList.remove('show');
+    showToast('Баланс скорректирован ✓');
+    loadBalances();
+  }).catch(function (err) {
+    btn.disabled = false; btn.textContent = 'Сохранить';
+    alert('Ошибка: ' + err.message);
+  });
+});
+
+/* ---------- История (все операции) ---------- */
+var typeRu = { TRADE: 'Trade', EXPENSE: 'Expense', LOAN: 'Loan', REPAYMENT: 'Repay' };
+function loadHistory() {
+  var out = document.getElementById('historyOutput');
+  out.innerHTML = '<div class="hint">Загрузка...</div>';
+  callApi('getAllOperations').then(function (rows) {
+    if (!rows.length) { out.innerHTML = '<div class="hint">Пока нет операций</div>'; return; }
+    var html = '<table><tr><th>Дата</th><th>Тип</th><th>Оператор</th><th>Детали</th><th>Sum</th></tr>';
+    rows.forEach(function (r) {
+      var d = new Date(r.Timestamp);
+      html += '<tr><td>' + d.toLocaleDateString('ru-RU') + '</td>' +
+        '<td><span class="typeBadge">' + (typeRu[r.Type] || r.Type) + '</span></td>' +
+        '<td>' + r.Operator + '</td>' +
+        '<td>' + r.Details + (r.Extra ? '<br><span class="hint">' + r.Extra + '</span>' : '') + (r.Comment ? '<br><span class="hint">' + r.Comment + '</span>' : '') + '</td>' +
+        '<td>' + fmt(Number(r.Sum)) + '</td></tr>';
+    });
+    html += '</table>';
+    out.innerHTML = html;
+  }).catch(function (err) { out.innerHTML = 'Ошибка: ' + err.message; });
+}
+
+/* ---------- отчёты Clients ---------- */
 document.querySelectorAll('#clients-report-scope div').forEach(function (el) {
   el.addEventListener('click', function () {
     document.querySelectorAll('#clients-report-scope div').forEach(function (d) { d.classList.remove('active'); });
@@ -522,39 +664,19 @@ function renderBalances(rows) {
 function renderHistory(rows) {
   var out = document.getElementById('reportOutput');
   if (!rows.length) { out.innerHTML = '<div class="hint">Нет данных</div>'; return; }
-  var html = '<table><tr><th>Дата</th><th>Клиент</th><th>Тип</th><th>Sum</th></tr>';
+  var html = '<table><tr><th>Дата</th><th>Клиент</th><th>Тип</th><th>Оператор</th><th>Sum</th></tr>';
   rows.forEach(function (r) {
     var d = new Date(r.Timestamp);
-    html += '<tr><td>' + d.toLocaleDateString('ru-RU') + '</td><td>' + r.Client + '</td><td>' + r.type + '</td><td>' + fmt(Number(r.Sum)) + '</td></tr>';
+    html += '<tr><td>' + d.toLocaleDateString('ru-RU') + '</td><td>' + r.Client + '</td><td>' + r.type + '</td><td>' + r.Operator + '</td><td>' + fmt(Number(r.Sum)) + '</td></tr>';
   });
   html += '</table>';
   out.innerHTML = html;
 }
 
 /* ---------- старт: проверка доступа ---------- */
-var clientDebug = {
-  hasTelegramObject: !!window.Telegram,
-  hasWebApp: !!tg,
-  locationHashLength: (window.location.hash || '').length,
-  platform: tg ? tg.platform : null,
-  version: tg ? tg.version : null
-};
-
-function showDebugInfo() {
-  callApi('debugAuth').then(function (info) {
-    document.getElementById('debugBox').innerHTML =
-      '<pre style="font-size:11px;white-space:pre-wrap">CLIENT:\n' + JSON.stringify(clientDebug, null, 2) +
-      '\n\nSERVER:\n' + JSON.stringify(info, null, 2) + '</pre>';
-  }).catch(function (err) {
-    document.getElementById('debugBox').innerHTML =
-      '<pre style="font-size:11px;color:red">' + err.message + '</pre>';
-  });
-}
-
 callApi('identifyOperator').then(function (op) {
   if (!op) {
     document.getElementById('lockedScreen').style.display = 'block';
-    showDebugInfo();
     return;
   }
   operatorName = op.name;
@@ -562,10 +684,8 @@ callApi('identifyOperator').then(function (op) {
   document.getElementById('app').style.display = 'block';
   document.getElementById('submitBar').style.display = 'block';
   loadRefData();
-}).catch(function (err) {
+}).catch(function () {
   document.getElementById('lockedScreen').style.display = 'block';
-  document.getElementById('debugBox').innerHTML =
-    '<pre style="font-size:11px;color:red">' + err.message + '</pre>';
 });
 </script>
 </body>
