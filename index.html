@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>BitSwap</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   :root {
@@ -109,12 +110,11 @@
 <body>
 
 <div id="lockedScreen" class="locked" style="display:none">
-  🔒 Доступ запрещён.<br>Обратитесь к администратору.
-  <div style="font-size:10px;color:#ccc;margin-top:20px">build: v4-raw-debug</div>
+  🔒 Access denied.<br>Please contact the administrator.
 </div>
 
 <div id="app" style="display:none">
-  <h1>Учёт операций</h1>
+  <h1>Operations Log</h1>
   <div class="hint" id="whoami"></div>
 
   <div class="tabs">
@@ -123,7 +123,7 @@
     <div class="tab" data-tab="loan">Loan</div>
     <div class="tab" data-tab="repayment">Repayment</div>
     <div class="tab" data-tab="balances">Balances</div>
-    <div class="tab" data-tab="history">История</div>
+    <div class="tab" data-tab="history">History</div>
     <div class="tab" data-tab="clients">Clients</div>
   </div>
 
@@ -144,24 +144,24 @@
       </div>
     </div>
     <div class="field">
-      <label>Sum from (списывается)</label>
-      <input type="text" inputmode="decimal" id="trade-sumfrom" placeholder="1234,56">
+      <label>Sum from (deducted)</label>
+      <input type="text" inputmode="decimal" id="trade-sumfrom" placeholder="1234.56">
     </div>
     <div class="field">
-      <label>Расчёт по:</label>
+      <label>Calculate by:</label>
       <div class="segmented">
-        <div class="active" data-method="rate">Курс (Rate)</div>
-        <div data-method="fee">Комиссия (Fee)</div>
+        <div class="active" data-method="rate">Rate</div>
+        <div data-method="fee">Fee</div>
       </div>
-      <input type="text" inputmode="decimal" id="trade-value" placeholder="напр. 1,01">
+      <input type="text" inputmode="decimal" id="trade-value" placeholder="e.g. 1.01">
     </div>
     <div class="calc-preview">
       <div><span>Rate</span><span id="calc-rate">—</span></div>
       <div><span>Fee (Profit)</span><span id="calc-fee">—</span></div>
-      <div class="big"><span>Sum to (зачисляется)</span><span id="calc-sumto">—</span></div>
+      <div class="big"><span>Sum to (credited)</span><span id="calc-sumto">—</span></div>
     </div>
     <div class="field">
-      <label>Comment (необязательно)</label>
+      <label>Comment (optional)</label>
       <input type="text" id="trade-comment">
     </div>
   </div>
@@ -184,10 +184,10 @@
     </div>
     <div class="field">
       <label>Sum</label>
-      <input type="text" inputmode="decimal" id="expense-sum" placeholder="1234,56">
+      <input type="text" inputmode="decimal" id="expense-sum" placeholder="1234.56">
     </div>
     <div class="field">
-      <label>Comment (необязательно)</label>
+      <label>Comment (optional)</label>
       <input type="text" id="expense-comment">
     </div>
   </div>
@@ -210,10 +210,10 @@
     </div>
     <div class="field">
       <label>Sum</label>
-      <input type="text" inputmode="decimal" id="loan-sum" placeholder="1234,56">
+      <input type="text" inputmode="decimal" id="loan-sum" placeholder="1234.56">
     </div>
     <div class="field">
-      <label>Comment (необязательно)</label>
+      <label>Comment (optional)</label>
       <input type="text" id="loan-comment">
     </div>
   </div>
@@ -236,10 +236,10 @@
     </div>
     <div class="field">
       <label>Sum</label>
-      <input type="text" inputmode="decimal" id="repayment-sum" placeholder="1234,56">
+      <input type="text" inputmode="decimal" id="repayment-sum" placeholder="1234.56">
     </div>
     <div class="field">
-      <label>Comment (необязательно)</label>
+      <label>Comment (optional)</label>
       <input type="text" id="repayment-comment">
     </div>
   </div>
@@ -247,75 +247,75 @@
   <!-- ===== BALANCES ===== -->
   <div class="section" id="section-balances">
     <div class="sectionHeader">
-      <div class="hint" style="margin:0">Ваши кошельки</div>
+      <div class="hint" style="margin:0">Your wallets</div>
       <button class="addBtn" id="btnOpenAdjust">+</button>
     </div>
-    <div id="balancesList"><div class="hint">Загрузка...</div></div>
+    <div id="balancesList"><div class="hint">Loading...</div></div>
   </div>
 
-  <!-- ===== HISTORY (все операции) ===== -->
+  <!-- ===== HISTORY (all operations) ===== -->
   <div class="section" id="section-history">
-    <div id="historyOutput"><div class="hint">Загрузка...</div></div>
+    <div id="historyOutput"><div class="hint">Loading...</div></div>
   </div>
 
-  <!-- ===== CLIENTS (долги) ===== -->
+  <!-- ===== CLIENTS (debts) ===== -->
   <div class="section" id="section-clients">
     <div class="field">
-      <label>Раздел</label>
+      <label>Report</label>
       <div class="segmented" id="clients-report-type">
         <div class="active" data-report="monitoring">Debts monitoring</div>
         <div data-report="history">Debts history</div>
       </div>
     </div>
     <div class="field">
-      <label>Охват</label>
+      <label>Scope</label>
       <div class="segmented" id="clients-report-scope">
-        <div class="active" data-scope="one">По клиенту</div>
-        <div data-scope="all">Сводка по всем</div>
+        <div class="active" data-scope="one">One client</div>
+        <div data-scope="all">All clients</div>
       </div>
     </div>
     <div class="field" id="clients-select-wrap">
       <label>Client</label>
       <select id="clients-select"></select>
     </div>
-    <button class="primary" id="btnRunReport" style="margin-bottom:16px;">Показать</button>
+    <button class="primary" id="btnRunReport" style="margin-bottom:16px;">Show</button>
     <div id="reportOutput"></div>
   </div>
 </div>
 
 <div class="submitBar" id="submitBar" style="display:none">
-  <button class="primary" id="btnSubmit">Проверить и отправить</button>
+  <button class="primary" id="btnSubmit">Review & submit</button>
 </div>
 
 <div class="overlay" id="overlay">
   <div class="modal">
-    <h3>Подтвердите запись</h3>
+    <h3>Confirm entry</h3>
     <div id="modalLines"></div>
     <div class="actions">
-      <button class="btn-cancel" id="btnCancel">Исправить</button>
-      <button class="btn-confirm" id="btnConfirm">Записать</button>
+      <button class="btn-cancel" id="btnCancel">Edit</button>
+      <button class="btn-confirm" id="btnConfirm">Submit</button>
     </div>
   </div>
 </div>
 
 <div class="overlay" id="adjustOverlay">
   <div class="modal">
-    <h3>Корректировка баланса</h3>
+    <h3>Balance adjustment</h3>
     <div class="field">
-      <label>Кошелёк</label>
+      <label>Wallet</label>
       <select id="adjust-wallet"></select>
     </div>
     <div class="field">
-      <label>Сумма (+ пополнение, − списание)</label>
-      <input type="text" inputmode="decimal" id="adjust-amount" placeholder="напр. 500 или -200">
+      <label>Amount (+ top-up, − deduction)</label>
+      <input type="text" inputmode="decimal" id="adjust-amount" placeholder="e.g. 500 or -200">
     </div>
     <div class="field">
-      <label>Comment (необязательно)</label>
-      <input type="text" id="adjust-comment" placeholder="напр. стартовый остаток">
+      <label>Comment (optional)</label>
+      <input type="text" id="adjust-comment" placeholder="e.g. opening balance">
     </div>
     <div class="actions">
-      <button class="btn-cancel" id="adjustCancel">Отмена</button>
-      <button class="btn-confirm" id="adjustSave">Сохранить</button>
+      <button class="btn-cancel" id="adjustCancel">Cancel</button>
+      <button class="btn-confirm" id="adjustSave">Save</button>
     </div>
   </div>
 </div>
@@ -323,8 +323,8 @@
 <div class="toast" id="toast"></div>
 
 <script>
-/* !!! ВСТАВЬТЕ СЮДА СВОЙ APPS SCRIPT WEB APP URL (заканчивается на /exec) !!! */
-var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyfZdiUjjlp6iAnWMj5UYsl12_NOZQ_UOQQ4TA-3mR-RvoqHK5_cpOtEb74wP6nclBm/exec';
+/* !!! PASTE YOUR APPS SCRIPT WEB APP URL HERE (ends with /exec) !!! */
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzlE7dSzp5GnwSaoXL7_ojB57_STeuRVT9Ya1mUZrF8k07pdOXjNxmi2uUZDYlblqg/exec';
 
 var tg = window.Telegram && window.Telegram.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
@@ -343,7 +343,7 @@ function callApi(action, payload) {
   })
   .then(function (r) { return r.json(); })
   .then(function (res) {
-    if (!res.ok) throw new Error(res.error || 'Неизвестная ошибка сервера');
+    if (!res.ok) throw new Error(res.error || 'Unknown server error');
     return res.data;
   });
 }
@@ -385,10 +385,10 @@ function loadRefData() {
   ]).then(function (res) {
     refData.wallets = res[0]; refData.purposes = res[1]; refData.clients = res[2];
     refreshDropdowns();
-  }).catch(function (err) { alert('Ошибка загрузки справочников: ' + err.message); });
+  }).catch(function (err) { alert('Failed to load reference lists: ' + err.message); });
 }
 
-/* ---------- вкладки ---------- */
+/* ---------- tabs ---------- */
 document.querySelectorAll('.tab').forEach(function (tab) {
   tab.addEventListener('click', function () {
     document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
@@ -404,12 +404,12 @@ document.querySelectorAll('.tab').forEach(function (tab) {
   });
 });
 
-/* ---------- добавление новых значений в справочники ---------- */
+/* ---------- add new dropdown values ---------- */
 document.querySelectorAll('.addBtn[data-add]').forEach(function (btn) {
   btn.addEventListener('click', function () {
     var kind = btn.dataset.add;
     var target = btn.dataset.target;
-    var name = prompt('Новое значение:');
+    var name = prompt('New value:');
     if (!name || !name.trim()) return;
     var fnMap = { wallet: 'addWallet', purpose: 'addPurpose', client: 'addClient' };
     callApi(fnMap[kind], { name: name.trim() }).then(function (list) {
@@ -418,19 +418,19 @@ document.querySelectorAll('.addBtn[data-add]').forEach(function (btn) {
       if (kind === 'client') refData.clients = list;
       refreshDropdowns();
       if (target) document.getElementById(target).value = name.trim();
-      showToast('Добавлено: ' + name.trim());
-    }).catch(function (err) { alert('Ошибка: ' + err.message); });
+      showToast('Added: ' + name.trim());
+    }).catch(function (err) { alert('Error: ' + err.message); });
   });
 });
 
-/* ---------- Trade: Rate/Fee + live-пересчёт Sum to ---------- */
+/* ---------- Trade: Rate/Fee toggle + live recalculation ---------- */
 var tradeMethod = 'rate';
 document.querySelectorAll('#section-trade .segmented div').forEach(function (el) {
   el.addEventListener('click', function () {
     document.querySelectorAll('#section-trade .segmented div').forEach(function (d) { d.classList.remove('active'); });
     el.classList.add('active');
     tradeMethod = el.dataset.method;
-    document.getElementById('trade-value').placeholder = tradeMethod === 'rate' ? 'напр. 1,01' : 'напр. 50';
+    document.getElementById('trade-value').placeholder = tradeMethod === 'rate' ? 'e.g. 1.01' : 'e.g. 50';
     recalcTrade();
   });
 });
@@ -446,7 +446,7 @@ function parseLocal(s) {
 }
 function fmt(n) {
   if (isNaN(n) || n === null || n === undefined) return '—';
-  return Number(n).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 var lastCalc = {};
 function recalcTrade() {
@@ -502,28 +502,28 @@ function collectPayload() {
   }
 }
 
-var labelsRu = {
+var fieldLabels = {
   from: 'From', to: 'To', sum: 'Sum', sumFrom: 'Sum from', purpose: 'Purpose', client: 'Client',
-  method: 'Метод', value: 'Значение', comment: 'Comment'
+  method: 'Method', value: 'Value', comment: 'Comment'
 };
 
 document.getElementById('btnSubmit').addEventListener('click', function () {
   var payload = collectPayload();
   var mainSum = payload.sum || payload.sumFrom;
-  if (!mainSum) { alert('Заполните Sum'); return; }
+  if (!mainSum) { alert('Please fill in the Sum'); return; }
   var modal = document.getElementById('modalLines');
   modal.innerHTML = '';
   Object.keys(payload).forEach(function (k) {
     if (k === 'type' || !payload[k]) return;
     var line = document.createElement('div');
     line.className = 'line';
-    line.innerHTML = '<span>' + (labelsRu[k] || k) + '</span><span>' + payload[k] + '</span>';
+    line.innerHTML = '<span>' + (fieldLabels[k] || k) + '</span><span>' + payload[k] + '</span>';
     modal.appendChild(line);
   });
   if (payload.type === 'trade' && lastCalc.sumTo !== undefined) {
     var line = document.createElement('div');
     line.className = 'line';
-    line.innerHTML = '<span>Sum to (расчётно)</span><span>' + fmt(lastCalc.sumTo) + '</span>';
+    line.innerHTML = '<span>Sum to (calculated)</span><span>' + fmt(lastCalc.sumTo) + '</span>';
     modal.appendChild(line);
   }
   document.getElementById('overlay').classList.add('show');
@@ -537,17 +537,17 @@ document.getElementById('btnCancel').addEventListener('click', function () {
 document.getElementById('btnConfirm').addEventListener('click', function () {
   var payload = JSON.parse(document.getElementById('overlay').dataset.payload);
   var btn = document.getElementById('btnConfirm');
-  btn.disabled = true; btn.textContent = 'Отправка...';
+  btn.disabled = true; btn.textContent = 'Submitting...';
   var fnMap = { trade: 'submitTrade', expense: 'submitExpense', loan: 'submitLoan', repayment: 'submitRepayment' };
   callApi(fnMap[payload.type], payload).then(function () {
     document.getElementById('overlay').classList.remove('show');
-    btn.disabled = false; btn.textContent = 'Записать';
-    showToast('Записано ✓');
+    btn.disabled = false; btn.textContent = 'Submit';
+    showToast('Saved ✓');
     resetForm(payload.type);
     loadedTabs.history = false;
   }).catch(function (err) {
-    btn.disabled = false; btn.textContent = 'Записать';
-    alert('Ошибка: ' + err.message);
+    btn.disabled = false; btn.textContent = 'Submit';
+    alert('Error: ' + err.message);
   });
 });
 
@@ -559,14 +559,14 @@ function resetForm(type) {
 /* ---------- Balances ---------- */
 function loadBalances() {
   var out = document.getElementById('balancesList');
-  out.innerHTML = '<div class="hint">Загрузка...</div>';
+  out.innerHTML = '<div class="hint">Loading...</div>';
   callApi('getWalletBalances').then(function (rows) {
-    if (!rows.length) { out.innerHTML = '<div class="hint">У вас пока нет кошельков — добавьте через "+"</div>'; return; }
+    if (!rows.length) { out.innerHTML = '<div class="hint">No wallets yet — add one with "+"</div>'; return; }
     out.innerHTML = rows.map(function (r) {
       var neg = r.balance < 0 ? ' neg' : '';
       return '<div class="balanceCard"><div class="name">' + r.wallet + '</div><div class="amount' + neg + '">' + fmt(r.balance) + '</div></div>';
     }).join('');
-  }).catch(function (err) { out.innerHTML = 'Ошибка: ' + err.message; });
+  }).catch(function (err) { out.innerHTML = 'Error: ' + err.message; });
 }
 
 document.getElementById('btnOpenAdjust').addEventListener('click', function () {
@@ -582,43 +582,43 @@ document.getElementById('adjustSave').addEventListener('click', function () {
   var wallet = document.getElementById('adjust-wallet').value;
   var amount = document.getElementById('adjust-amount').value;
   var comment = document.getElementById('adjust-comment').value;
-  if (!wallet) { alert('Нет ни одного кошелька — сначала добавьте его в любой из форм через "+"'); return; }
-  if (!amount) { alert('Заполните сумму'); return; }
+  if (!wallet) { alert('No wallets yet — add one first from any form using "+"'); return; }
+  if (!amount) { alert('Please fill in the amount'); return; }
   var btn = document.getElementById('adjustSave');
-  btn.disabled = true; btn.textContent = 'Сохранение...';
+  btn.disabled = true; btn.textContent = 'Saving...';
   callApi('submitAdjustment', { wallet: wallet, amount: amount, comment: comment }).then(function () {
-    btn.disabled = false; btn.textContent = 'Сохранить';
+    btn.disabled = false; btn.textContent = 'Save';
     document.getElementById('adjustOverlay').classList.remove('show');
-    showToast('Баланс скорректирован ✓');
+    showToast('Balance adjusted ✓');
     loadBalances();
   }).catch(function (err) {
-    btn.disabled = false; btn.textContent = 'Сохранить';
-    alert('Ошибка: ' + err.message);
+    btn.disabled = false; btn.textContent = 'Save';
+    alert('Error: ' + err.message);
   });
 });
 
-/* ---------- История (все операции) ---------- */
-var typeRu = { TRADE: 'Trade', EXPENSE: 'Expense', LOAN: 'Loan', REPAYMENT: 'Repay' };
+/* ---------- History (all operations) ---------- */
+var typeLabels = { TRADE: 'Trade', EXPENSE: 'Expense', LOAN: 'Loan', REPAYMENT: 'Repay' };
 function loadHistory() {
   var out = document.getElementById('historyOutput');
-  out.innerHTML = '<div class="hint">Загрузка...</div>';
+  out.innerHTML = '<div class="hint">Loading...</div>';
   callApi('getAllOperations').then(function (rows) {
-    if (!rows.length) { out.innerHTML = '<div class="hint">Пока нет операций</div>'; return; }
-    var html = '<table><tr><th>Дата</th><th>Тип</th><th>Оператор</th><th>Детали</th><th>Sum</th></tr>';
+    if (!rows.length) { out.innerHTML = '<div class="hint">No operations yet</div>'; return; }
+    var html = '<table><tr><th>Date</th><th>Type</th><th>Operator</th><th>Details</th><th>Sum</th></tr>';
     rows.forEach(function (r) {
       var d = new Date(r.Timestamp);
-      html += '<tr><td>' + d.toLocaleDateString('ru-RU') + '</td>' +
-        '<td><span class="typeBadge">' + (typeRu[r.Type] || r.Type) + '</span></td>' +
+      html += '<tr><td>' + d.toLocaleDateString('en-US') + '</td>' +
+        '<td><span class="typeBadge">' + (typeLabels[r.Type] || r.Type) + '</span></td>' +
         '<td>' + r.Operator + '</td>' +
         '<td>' + r.Details + (r.Extra ? '<br><span class="hint">' + r.Extra + '</span>' : '') + (r.Comment ? '<br><span class="hint">' + r.Comment + '</span>' : '') + '</td>' +
         '<td>' + fmt(Number(r.Sum)) + '</td></tr>';
     });
     html += '</table>';
     out.innerHTML = html;
-  }).catch(function (err) { out.innerHTML = 'Ошибка: ' + err.message; });
+  }).catch(function (err) { out.innerHTML = 'Error: ' + err.message; });
 }
 
-/* ---------- отчёты Clients ---------- */
+/* ---------- Clients reports ---------- */
 document.querySelectorAll('#clients-report-scope div').forEach(function (el) {
   el.addEventListener('click', function () {
     document.querySelectorAll('#clients-report-scope div').forEach(function (d) { d.classList.remove('active'); });
@@ -638,7 +638,7 @@ document.getElementById('btnRunReport').addEventListener('click', function () {
   var scope = document.querySelector('#clients-report-scope .active').dataset.scope;
   var client = document.getElementById('clients-select').value;
   var out = document.getElementById('reportOutput');
-  out.innerHTML = 'Загрузка...';
+  out.innerHTML = 'Loading...';
 
   var call;
   if (reportType === 'monitoring') {
@@ -649,12 +649,12 @@ document.getElementById('btnRunReport').addEventListener('click', function () {
   call.then(function (data) {
     if (reportType === 'monitoring') renderBalances(scope === 'all' ? data : [data]);
     else renderHistory(data);
-  }).catch(function (err) { out.innerHTML = 'Ошибка: ' + err.message; });
+  }).catch(function (err) { out.innerHTML = 'Error: ' + err.message; });
 });
 
 function renderBalances(rows) {
   var out = document.getElementById('reportOutput');
-  if (!rows.length) { out.innerHTML = '<div class="hint">Нет данных</div>'; return; }
+  if (!rows.length) { out.innerHTML = '<div class="hint">No data</div>'; return; }
   var html = '<table><tr><th>Client</th><th>Balance</th></tr>';
   rows.forEach(function (r) {
     html += '<tr><td>' + r.client + '</td><td>' + fmt(r.balance) + '</td></tr>';
@@ -664,44 +664,29 @@ function renderBalances(rows) {
 }
 function renderHistory(rows) {
   var out = document.getElementById('reportOutput');
-  if (!rows.length) { out.innerHTML = '<div class="hint">Нет данных</div>'; return; }
-  var html = '<table><tr><th>Дата</th><th>Клиент</th><th>Тип</th><th>Оператор</th><th>Sum</th></tr>';
+  if (!rows.length) { out.innerHTML = '<div class="hint">No data</div>'; return; }
+  var html = '<table><tr><th>Date</th><th>Client</th><th>Type</th><th>Operator</th><th>Sum</th></tr>';
   rows.forEach(function (r) {
     var d = new Date(r.Timestamp);
-    html += '<tr><td>' + d.toLocaleDateString('ru-RU') + '</td><td>' + r.Client + '</td><td>' + r.type + '</td><td>' + r.Operator + '</td><td>' + fmt(Number(r.Sum)) + '</td></tr>';
+    html += '<tr><td>' + d.toLocaleDateString('en-US') + '</td><td>' + r.Client + '</td><td>' + r.type + '</td><td>' + r.Operator + '</td><td>' + fmt(Number(r.Sum)) + '</td></tr>';
   });
   html += '</table>';
   out.innerHTML = html;
 }
 
-/* ---------- старт: проверка доступа ---------- */
+/* ---------- startup: access check ---------- */
 callApi('identifyOperator').then(function (op) {
   if (!op) {
     document.getElementById('lockedScreen').style.display = 'block';
-    callApi('identifyOperatorRaw').then(function (info) {
-      document.getElementById('lockedScreen').innerHTML +=
-        '<pre style="font-size:11px;text-align:left;margin-top:16px;color:green">RAW OK: ' + JSON.stringify(info) + '</pre>';
-    }).catch(function (err) {
-      document.getElementById('lockedScreen').innerHTML +=
-        '<pre style="font-size:11px;text-align:left;margin-top:16px;color:red">RAW ERROR: ' + err.message + '</pre>';
-    });
-    callApi('debugAuth').then(function (info) {
-      document.getElementById('lockedScreen').innerHTML +=
-        '<pre style="font-size:11px;text-align:left;margin-top:16px;white-space:pre-wrap">' + JSON.stringify(info, null, 2) + '</pre>';
-    }).catch(function (err) {
-      document.getElementById('lockedScreen').innerHTML +=
-        '<pre style="font-size:11px;text-align:left;margin-top:16px;color:red">debugAuth error: ' + err.message + '</pre>';
-    });
     return;
   }
   operatorName = op.name;
-  document.getElementById('whoami').textContent = 'Вы вошли как: ' + operatorName;
+  document.getElementById('whoami').textContent = 'Signed in as: ' + operatorName;
   document.getElementById('app').style.display = 'block';
   document.getElementById('submitBar').style.display = 'block';
   loadRefData();
-}).catch(function (err) {
+}).catch(function () {
   document.getElementById('lockedScreen').style.display = 'block';
-  document.getElementById('lockedScreen').innerHTML += '<pre style="font-size:11px;text-align:left;margin-top:16px;color:red">DEBUG: ' + err.message + '\nAPPS_SCRIPT_URL = ' + APPS_SCRIPT_URL + '</pre>';
 });
 </script>
 </body>
