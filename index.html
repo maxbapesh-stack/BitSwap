@@ -678,6 +678,13 @@ function renderHistory(rows) {
 callApi('identifyOperator').then(function (op) {
   if (!op) {
     document.getElementById('lockedScreen').style.display = 'block';
+    callApi('debugAuth').then(function (info) {
+      document.getElementById('lockedScreen').innerHTML +=
+        '<pre style="font-size:11px;text-align:left;margin-top:16px;white-space:pre-wrap">' + JSON.stringify(info, null, 2) + '</pre>';
+    }).catch(function (err) {
+      document.getElementById('lockedScreen').innerHTML +=
+        '<pre style="font-size:11px;text-align:left;margin-top:16px;color:red">debugAuth error: ' + err.message + '</pre>';
+    });
     return;
   }
   operatorName = op.name;
