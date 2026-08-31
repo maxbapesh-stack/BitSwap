@@ -677,7 +677,10 @@ function renderHistory(rows) {
 callApi('identifyOperator').then(function (op) {
   if (!op) {
     document.getElementById('lockedScreen').style.display = 'block';
-    document.getElementById('lockedScreen').innerHTML += '<pre style="font-size:11px;text-align:left;margin-top:16px">DEBUG: identifyOperator вернул null.\nAPPS_SCRIPT_URL = ' + APPS_SCRIPT_URL + '</pre>';
+    callApi('debugAuth').then(function (info) {
+      document.getElementById('lockedScreen').innerHTML +=
+        '<pre style="font-size:11px;text-align:left;margin-top:16px;white-space:pre-wrap">' + JSON.stringify(info, null, 2) + '</pre>';
+    });
     return;
   }
   operatorName = op.name;
